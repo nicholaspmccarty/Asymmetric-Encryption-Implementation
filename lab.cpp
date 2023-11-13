@@ -82,10 +82,16 @@ uint64_t generateRandomPrime(uint64_t n) {
     return randomPrime;
     return 0;
 }
+
 // Given p, and q, find a number that is relatively prime to (p-1)*(q-1)
 // I.e. the gcd(k_e, (p-1)*(q-1))==1
 uint64_t calculatePublicKey(uint64_t p, uint64_t q) {
     // TODO 4
+    uint64_t k_e = 0;
+    while (gcd(k_e, (p-1)*(q-1)) != 1) {
+        k_e += 2;
+    }
+
     (void) p;
     (void) q;
     return 0;
@@ -93,10 +99,15 @@ uint64_t calculatePublicKey(uint64_t p, uint64_t q) {
 // Given p, q, and k_e, calculate the private key which satisfies
 // (k_e*k_d) % ((p-1)(q-1)) == 1
 uint64_t calculatePrivateKey(uint64_t p, uint64_t q, uint64_t k_e) {
-    // TODO 5
-    (void) p;
-    (void) q;
-    (void) k_e;
+    uint64_t phiN = (p - 1) * (q - 1);
+
+    for (uint64_t kd = 1; kd < phiN; ++kd) {
+        if ((k_e * kd) % phiN == 1) {
+            return kd;
+        }
+    }
+
+    // If no private key is found, return an invalid value (you may want to handle this case differently)
     return 0;
 }
 
