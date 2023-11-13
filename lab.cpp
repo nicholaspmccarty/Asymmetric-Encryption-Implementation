@@ -25,7 +25,8 @@ struct KeyPair {
 enum class [[nodiscard]] Status {
     ok,
     invalid_input,
-    unexpected_condition
+    unexpected_condition,
+    data_loss_error
 };
 
 
@@ -92,9 +93,7 @@ uint64_t calculatePublicKey(uint64_t p, uint64_t q) {
         k_e += 2;
     }
 
-    (void) p;
-    (void) q;
-    return 0;
+    return k_e;
 }
 // Given p, q, and k_e, calculate the private key which satisfies
 // (k_e*k_d) % ((p-1)(q-1)) == 1
@@ -107,7 +106,6 @@ uint64_t calculatePrivateKey(uint64_t p, uint64_t q, uint64_t k_e) {
         }
     }
 
-    // If no private key is found, return an invalid value (you may want to handle this case differently)
     return 0;
 }
 
@@ -115,31 +113,41 @@ uint64_t calculatePrivateKey(uint64_t p, uint64_t q, uint64_t k_e) {
 // such that n > message_max.
 KeyPair generateKeyPair(int32_t message_max) {
     // TODO 6
-    (void) message_max;
-    return KeyPair();
+    KeyPair ret;
+    uint64_t p = generateRandomPrime(static_cast<uint64_t>(message_max));
+    uint64_t q = generateRandomPrime(static_cast<uint64_t>(message_max));
+    ret.p = p;
+    ret.q = q;
+    (void) ret;
+    ret .n = ret.p * ret.q;
+    // Setting k_e and k_d variables
+    ret.k_e = calculatePublicKey(ret.p, ret.q);
+    ret.k_d = calculatePrivateKey(ret.p, ret.q, ret.k_e);
+    return ret;
 }
 // Encrypts an integer message using a product and an encryption key.
 // Error if m > n
-uint64_t encrypt(uint64_t m, uint64_t n, uint64_t k_e) {
-    //TODO 7
-    (void) m;
-    (void) n;
-    (void) k_e;
-    return 0;
+StatusOr<uint64_t> encrypt(uint64_t m, uint64_t n, uint64_t k_e) {
+    if (m > n) {
+        return std::unexpected(Status::data_loss_error);
+    }
+    
+    return mod_exp(m, k_e, n);
 
 }
 // Decrypts anuint64_t message given a ciphertext c, N, private decryption key
 // Error if m > n
-uint64_t decrypt(uint64_t c, uint64_t n, uint64_t k_d) {
-    // TODO 8
-    (void) c;
-    (void) n;
-    (void) k_d;
-    return 0;
+StatusOr<uint64_t> decrypt(uint64_t c, uint64_t n, uint64_t k_d) {
+    if (c > n) {
+        return std::unexpected(Status::data_loss_error);
+    }
+
+   uint64_t decrypted_message = mod_exp(c, k_d, n);
+   return decrypted_message;
 }
 
 int main() {
-    // TODO 9
+     std::string message = "Hello World!";
     uint64_t k_e = 17;
     uint64_t k_d = 71153;
     uint64_t n = 152021;
