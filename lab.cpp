@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <iostream> 
+#include <expected>
 
 // The output of a public-private key pair generator
 struct KeyPair {
@@ -16,6 +17,22 @@ struct KeyPair {
     // Private decryption key
     uint64_t k_d;
 };
+
+enum class [[nodiscard]] Status {
+    ok,
+    invalid_input,
+    index_error,
+    pipe_creation_error,
+    file_buffer_error,
+    io_error,
+    process_error,
+    file_close_error,
+    unexpected_condition
+};
+
+
+template <typename T>
+using StatusOr = std::expected<T, Status>;
 
 // Compute base^exponent mod modulus without needing to calculate base^exponent (very large)
 uint64_t mod_exp(uint64_t base, uint64_t exponent, uint64_t modulus) {
