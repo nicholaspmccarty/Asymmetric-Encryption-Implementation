@@ -1,6 +1,10 @@
 #include <cstdint>
 #include <iostream> 
 #include <expected>
+#include <iostream>
+#include <algorithm> 
+#include <cstdlib>
+#include <ctime>
 
 // The output of a public-private key pair generator
 struct KeyPair {
@@ -21,14 +25,9 @@ struct KeyPair {
 enum class [[nodiscard]] Status {
     ok,
     invalid_input,
-    index_error,
-    pipe_creation_error,
-    file_buffer_error,
-    io_error,
-    process_error,
-    file_close_error,
     unexpected_condition
 };
+
 
 
 template <typename T>
@@ -50,21 +49,37 @@ uint64_t mod_exp(uint64_t base, uint64_t exponent, uint64_t modulus) {
 
 // Greatest common divisor
 uint64_t gcd(uint64_t a, uint64_t b) {
-    // TODO 1
-    (void) a;
-    (void) b;
-    return 0;
+    while (b != 0) {
+        uint64_t temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
 }
 // Checks to see if n is a prime number
 bool isPrime(uint64_t n) {
-    // TODO 2
-    (void) n;
-    return false;
+    if (n <= 1) {
+        return false;
+    }
+
+    for (uint64_t i = 2; i * i <= n; ++i) {
+        if (n % i == 0) {
+            return false;
+        }
+    }
+
+    return true;
 }
 // Generates a random prime number between 1 and n
 uint64_t generateRandomPrime(uint64_t n) {
-    // TODO 3
-    (void) n;
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    uint64_t randomPrime;
+    do {
+        // Generate a random number between 1 and n
+        randomPrime = static_cast<uint64_t>(std::rand() % static_cast<int>(n) + 1);
+    } while (!isPrime(randomPrime));
+
+    return randomPrime;
     return 0;
 }
 // Given p, and q, find a number that is relatively prime to (p-1)*(q-1)
