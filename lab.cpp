@@ -150,9 +150,9 @@ int main() {
      KeyPair keyPair = generateKeyPair(255);
     (void) keyPair;
     std::string message = "Hello World!";
-    uint64_t k_e = 17;
-    uint64_t k_d = 71153;
-    uint64_t n = 152021;
+    uint64_t k_e = keyPair.k_e;
+    uint64_t k_d = keyPair.k_d;
+    uint64_t n = keyPair.n;
     (void) k_e;
     (void) k_d;
     (void) n;
@@ -178,6 +178,22 @@ int main() {
         std::cout << itc;
     }
    std::cout << std::endl;
+
+   for (uint64_t encryptedValue : encryptedMessage) {
+        StatusOr<uint64_t> decryptResult = decrypt(encryptedValue, n, k_d);
+        if (decryptResult.has_value()) {
+            char decryptedChar = static_cast<char>(decryptResult.value());
+            decryptedMessage.push_back(decryptedChar);
+        } else {
+            std::cerr << "Decryption error: " << std::endl;
+            return 1;  // Return an error code
+        }
+    }
+    std::cout << "Decrypted message: ";
+    for (char c : decryptedMessage) {
+        std::cout << c;
+    }
+    std::cout << std::endl;
 
 
     // Message to be encrypted and decrypted
