@@ -5,6 +5,7 @@
 #include <algorithm> 
 #include <cstdlib>
 #include <ctime>
+#include <vector>
 
 // The output of a public-private key pair generator
 struct KeyPair {
@@ -81,16 +82,15 @@ uint64_t generateRandomPrime(uint64_t n) {
     } while (!isPrime(randomPrime));
 
     return randomPrime;
-    return 0;
 }
 
 // Given p, and q, find a number that is relatively prime to (p-1)*(q-1)
 // I.e. the gcd(k_e, (p-1)*(q-1))==1
 uint64_t calculatePublicKey(uint64_t p, uint64_t q) {
-    // TODO 4
-    uint64_t k_e = 0;
+    uint64_t k_e = 3; // Start with the smallest positive odd integer
+
     while (gcd(k_e, (p-1)*(q-1)) != 1) {
-        k_e += 2;
+        k_e += 2; // Increment by 2 to ensure it stays odd
     }
 
     return k_e;
@@ -147,13 +147,40 @@ StatusOr<uint64_t> decrypt(uint64_t c, uint64_t n, uint64_t k_d) {
 }
 
 int main() {
-     std::string message = "Hello World!";
+     KeyPair keyPair = generateKeyPair(255);
+    (void) keyPair;
+    std::string message = "Hello World!";
     uint64_t k_e = 17;
     uint64_t k_d = 71153;
     uint64_t n = 152021;
     (void) k_e;
     (void) k_d;
     (void) n;
+    std::vector<uint64_t> encryptedMessage;
+    std::vector<char> decryptedMessage;
+    for (char ch : message) {
+        uint64_t temp = static_cast<uint64_t>(ch);
+        
+        // Encrypt the character using the public key
+        StatusOr<uint64_t> result = encrypt(temp, n, k_e);
+
+        // Check if encryption was successful
+        if (result.has_value()) {
+            // Add the encrypted value to the result vector
+            encryptedMessage.push_back(result.value());
+        } else {
+            std::cerr << "Encryption error: " << std::endl;
+            return 1;  // Return an error code
+        }
+    }
+   std::cout << "Encrypted message: ";
+   for (uint64_t itc : encryptedMessage) {
+        std::cout << itc;
+    }
+   std::cout << std::endl;
+
+
+    // Message to be encrypted and decrypted
 
     return 0;
 }
