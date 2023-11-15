@@ -1,3 +1,6 @@
+// Nicholas McCarty
+// CSE 381
+// Working with key pairs & asymmetrically encrypting messages. 
 #include <cstdint>
 #include <iostream> 
 #include <expected>
@@ -23,6 +26,15 @@ struct KeyPair {
     uint64_t k_d;
 };
 
+/**
+ * Enum representing the status of an operation.
+ * 
+ * The possible values are:
+ * - {@link Status#ok}: Operation completed successfully.
+ * - {@link Status#invalid_input}: Invalid input parameters or conditions.
+ * - {@link Status#unexpected_condition}: Unexpected condition occurred during the operation.
+ * - {@link Status#data_loss_error}: Error indicating potential data loss.
+ */
 enum class [[nodiscard]] Status {
     ok,
     invalid_input,
@@ -35,7 +47,14 @@ enum class [[nodiscard]] Status {
 template <typename T>
 using StatusOr = std::expected<T, Status>;
 
-// Compute base^exponent mod modulus without needing to calculate base^exponent (very large)
+/**
+ * @brief Compute base^exponent mod modulus without needing to calculate base^exponent (very large)
+ * 
+ * @param base The base value.
+ * @param exponent The exponent value.
+ * @param modulus The modulus value.
+ * @return uint64_t The result of base^exponent mod modulus.
+ */
 uint64_t mod_exp(uint64_t base, uint64_t exponent, uint64_t modulus) {
     uint64_t result = 1;
     base %= modulus;
@@ -50,7 +69,14 @@ uint64_t mod_exp(uint64_t base, uint64_t exponent, uint64_t modulus) {
     // end of scope
 }
 
-// Greatest common divisor
+
+/**
+ * @brief Greatest common divisor
+ * 
+ * @param a The first number.
+ * @param b The second number.
+ * @return uint64_t The greatest common divisor of a and b.
+ */
 uint64_t gcd(uint64_t a, uint64_t b) {
     while (b != 0) {
         uint64_t temp = b;
@@ -60,7 +86,13 @@ uint64_t gcd(uint64_t a, uint64_t b) {
     return a;
     // end of scope
 }
-// Checks to see if n is a prime number
+/**
+ * @brief Checks to see if n is a prime number
+ * 
+ * @param n The number to check for primality.
+ * @return true If n is a prime number.
+ * @return false If n is not a prime number.
+ */
 bool isPrime(uint64_t n) {
     if (n <= 1) {
         return false;
@@ -74,7 +106,12 @@ bool isPrime(uint64_t n) {
     // end of scope
     return true;
 }
-// Generates a random prime number between 1 and n
+/**
+ * @brief Generates a random prime number between 1 and n
+ * 
+ * @param n The upper limit for the random prime number.
+ * @return uint64_t A random prime number between 1 and n.
+ */
 uint64_t generateRandomPrime(uint64_t n) {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     uint64_t randomPrime;
@@ -87,8 +124,14 @@ uint64_t generateRandomPrime(uint64_t n) {
     // end of scope
 }
 
-// Given p, and q, find a number that is relatively prime to (p-1)*(q-1)
-// I.e. the gcd(k_e, (p-1)*(q-1))==1
+/**
+ * @brief Given p, and q, find a number that is relatively prime to (p-1)*(q-1)
+ * I.e. the gcd(k_e, (p-1)*(q-1))==1
+ * 
+ * @param p The first prime number.
+ * @param q The second prime number.
+ * @return uint64_t A number relatively prime to (p-1)*(q-1).
+ */
 uint64_t calculatePublicKey(uint64_t p, uint64_t q) {
     uint64_t k_e = 3; // Start with the smallest positive odd integer
     while (gcd(k_e, (p-1)*(q-1)) != 1) {
@@ -98,8 +141,15 @@ uint64_t calculatePublicKey(uint64_t p, uint64_t q) {
     return k_e;
     // end of scope
 }
-// Given p, q, and k_e, calculate the private key which satisfies
-// (k_e*k_d) % ((p-1)(q-1)) == 1
+/**
+ * @brief Given p, q, and k_e, calculate the private key which satisfies
+ * (k_e*k_d) % ((p-1)(q-1)) == 1
+ * 
+ * @param p The first prime number.
+ * @param q The second prime number.
+ * @param k_e The public encryption key.
+ * @return uint64_t The private decryption key.
+ */
 uint64_t calculatePrivateKey(uint64_t p, uint64_t q, uint64_t k_e) {
     uint64_t phiN = (p - 1) * (q - 1);
     for (uint64_t kd = 1; kd < phiN; ++kd) {
@@ -112,8 +162,14 @@ uint64_t calculatePrivateKey(uint64_t p, uint64_t q, uint64_t k_e) {
     // end of scope
 }
 
-// Generates a random public/private key-pair
-// such that n > message_max.
+/**
+ * @brief Generates a random public/private key-pair
+ * such that n > message_max.
+ * 
+ * @param message_max The minimum value for n.
+ * @return KeyPair A structure containing the generated key pair.
+ */
+
 KeyPair generateKeyPair(int32_t message_max) {
     // TODO 6
     KeyPair ret;
@@ -135,8 +191,15 @@ KeyPair generateKeyPair(int32_t message_max) {
 
     // end of scope
 }
-// Encrypts an integer message using a product and an encryption key.
-// Error if m > n
+/**
+ * @brief Encrypts an integer message using a product and an encryption key.
+ * Error if m > n
+ * 
+ * @param m The integer message to be encrypted.
+ * @param n The product of two prime numbers.
+ * @param k_e The public encryption key.
+ * @return StatusOr<uint64_t> The encrypted message or an error status.
+ */
 StatusOr<uint64_t> encrypt(uint64_t m, uint64_t n, uint64_t k_e) {
     if (m > n) {
         return std::unexpected(Status::data_loss_error);
@@ -148,8 +211,15 @@ StatusOr<uint64_t> encrypt(uint64_t m, uint64_t n, uint64_t k_e) {
     // end of scope
 
 }
-// Decrypts anuint64_t message given a ciphertext c, N, private decryption key
-// Error if m > n
+/**
+ * @brief Decrypts an integer message given a ciphertext c, N, private decryption key.
+ * Error if m > n
+ * 
+ * @param c The ciphertext to be decrypted.
+ * @param n The product of two prime numbers.
+ * @param k_d The private decryption key.
+ * @return StatusOr<uint64_t> The decrypted message or an error status.
+ */
 StatusOr<uint64_t> decrypt(uint64_t c, uint64_t n, uint64_t k_d) {
     if (c > n) {
         return std::unexpected(Status::data_loss_error);
@@ -160,7 +230,7 @@ StatusOr<uint64_t> decrypt(uint64_t c, uint64_t n, uint64_t k_d) {
 }
 
 int main() {
-     KeyPair keyPair = generateKeyPair(255);
+    KeyPair keyPair = generateKeyPair(255);
     std::string message = "Hello World!";
     uint64_t k_e = keyPair.k_e;
     uint64_t k_d = keyPair.k_d;
@@ -168,8 +238,7 @@ int main() {
     
     std::vector<uint64_t> encryptedMessage;
     std::vector<char> decryptedMessage;
-    (void) keyPair;
-    for (char ch : message) {
+    for (auto ch : message) {
         uint64_t temp = static_cast<uint64_t>(ch);
         
         // encrypting to statusor
@@ -185,7 +254,7 @@ int main() {
         }
     }
    std::cout << "Encrypted message: ";
-   for (uint64_t itc : encryptedMessage) {
+   for (auto itc : encryptedMessage) {
         std::cout << itc;
     }
    std::cout << std::endl;
@@ -201,7 +270,7 @@ int main() {
         }
     }
     std::cout << "Decrypted message: ";
-    for (char c : decryptedMessage) {
+    for (auto c : decryptedMessage) {
         std::cout << c;
     }
     std::cout << std::endl;
