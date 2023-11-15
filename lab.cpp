@@ -47,6 +47,7 @@ uint64_t mod_exp(uint64_t base, uint64_t exponent, uint64_t modulus) {
         base = (base * base) % modulus;
     }
     return result;
+    // end of scope
 }
 
 // Greatest common divisor
@@ -57,6 +58,7 @@ uint64_t gcd(uint64_t a, uint64_t b) {
         a = temp;
     }
     return a;
+    // end of scope
 }
 // Checks to see if n is a prime number
 bool isPrime(uint64_t n) {
@@ -69,7 +71,7 @@ bool isPrime(uint64_t n) {
             return false;
         }
     }
-
+    // end of scope
     return true;
 }
 // Generates a random prime number between 1 and n
@@ -82,24 +84,24 @@ uint64_t generateRandomPrime(uint64_t n) {
     } while (!isPrime(randomPrime));
 
     return randomPrime;
+    // end of scope
 }
 
 // Given p, and q, find a number that is relatively prime to (p-1)*(q-1)
 // I.e. the gcd(k_e, (p-1)*(q-1))==1
 uint64_t calculatePublicKey(uint64_t p, uint64_t q) {
     uint64_t k_e = 3; // Start with the smallest positive odd integer
-
     while (gcd(k_e, (p-1)*(q-1)) != 1) {
         k_e += 2; // Increment by 2 to ensure it stays odd
     }
 
     return k_e;
+    // end of scope
 }
 // Given p, q, and k_e, calculate the private key which satisfies
 // (k_e*k_d) % ((p-1)(q-1)) == 1
 uint64_t calculatePrivateKey(uint64_t p, uint64_t q, uint64_t k_e) {
     uint64_t phiN = (p - 1) * (q - 1);
-
     for (uint64_t kd = 1; kd < phiN; ++kd) {
         if ((k_e * kd) % phiN == 1) {
             return kd;
@@ -107,6 +109,7 @@ uint64_t calculatePrivateKey(uint64_t p, uint64_t q, uint64_t k_e) {
     }
 
     return 0;
+    // end of scope
 }
 
 // Generates a random public/private key-pair
@@ -114,16 +117,23 @@ uint64_t calculatePrivateKey(uint64_t p, uint64_t q, uint64_t k_e) {
 KeyPair generateKeyPair(int32_t message_max) {
     // TODO 6
     KeyPair ret;
-    uint64_t p = generateRandomPrime(static_cast<uint64_t>(message_max));
-    uint64_t q = generateRandomPrime(static_cast<uint64_t>(message_max));
-    ret.p = p;
-    ret.q = q;
-    (void) ret;
-    ret .n = ret.p * ret.q;
+
+    // Generate the first prime number
+    ret.p = generateRandomPrime(static_cast<uint64_t>(message_max));
+
+    // Generate the second prime number, ensuring it is different from the first one
+    do {
+        ret.q = generateRandomPrime(static_cast<uint64_t>(message_max));
+    } while (ret.q == ret.p);
+
+    ret.n = ret.p * ret.q;
+
     // Setting k_e and k_d variables
     ret.k_e = calculatePublicKey(ret.p, ret.q);
     ret.k_d = calculatePrivateKey(ret.p, ret.q, ret.k_e);
     return ret;
+
+    // end of scope
 }
 // Encrypts an integer message using a product and an encryption key.
 // Error if m > n
@@ -132,7 +142,10 @@ StatusOr<uint64_t> encrypt(uint64_t m, uint64_t n, uint64_t k_e) {
         return std::unexpected(Status::data_loss_error);
     }
     
+    // return mod_exp
     return mod_exp(m, k_e, n);
+
+    // end of scope
 
 }
 // Decrypts anuint64_t message given a ciphertext c, N, private decryption key
@@ -148,29 +161,27 @@ StatusOr<uint64_t> decrypt(uint64_t c, uint64_t n, uint64_t k_d) {
 
 int main() {
      KeyPair keyPair = generateKeyPair(255);
-    (void) keyPair;
     std::string message = "Hello World!";
     uint64_t k_e = keyPair.k_e;
     uint64_t k_d = keyPair.k_d;
     uint64_t n = keyPair.n;
-    (void) k_e;
-    (void) k_d;
-    (void) n;
+    
     std::vector<uint64_t> encryptedMessage;
     std::vector<char> decryptedMessage;
+    (void) keyPair;
     for (char ch : message) {
         uint64_t temp = static_cast<uint64_t>(ch);
         
-        // Encrypt the character using the public key
+        // encrypting to statusor
         StatusOr<uint64_t> result = encrypt(temp, n, k_e);
 
-        // Check if encryption was successful
+        // Checking statusor value
         if (result.has_value()) {
-            // Add the encrypted value to the result vector
+            // pushing to result vector
             encryptedMessage.push_back(result.value());
         } else {
             std::cerr << "Encryption error: " << std::endl;
-            return 1;  // Return an error code
+            return 1; 
         }
     }
    std::cout << "Encrypted message: ";
@@ -186,7 +197,7 @@ int main() {
             decryptedMessage.push_back(decryptedChar);
         } else {
             std::cerr << "Decryption error: " << std::endl;
-            return 1;  // Return an error code
+            return 1; 
         }
     }
     std::cout << "Decrypted message: ";
@@ -194,9 +205,8 @@ int main() {
         std::cout << c;
     }
     std::cout << std::endl;
-
-
+    
     // Message to be encrypted and decrypted
-
+    // End of scope
     return 0;
 }
